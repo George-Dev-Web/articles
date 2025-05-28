@@ -26,8 +26,6 @@ pip install pytest
 python scripts/setup_db.py
 ```
 
-### Step 4: Explore or build on the system
-Use `lib/debug.py` for interactive testing.
 
 ## File Structure
 - `lib/models`: Author, Article, Magazine classes.
