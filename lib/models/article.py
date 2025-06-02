@@ -3,7 +3,7 @@ import sqlite3
 from ..db.connection import get_connection, close_connection
 
 class Article:
-    def __init__(self, id, title, content, author_id, magazine_id):
+    def __init__(self, title, content, author_id, magazine_id, id=None): # id is now optional and last
         self.id = id
         self.title = title
         self.content = content
@@ -21,7 +21,7 @@ class Article:
                 rows = cursor.fetchall()
                 for row in rows:
                     articles.append(cls(
-                        row['id'], row['title'], row['content'], row['author_id'], row['magazine_id']
+                        row['title'], row['content'], row['author_id'], row['magazine_id'], row['id'] # Pass id as the last argument
                     ))
             except sqlite3.Error as e:
                 print(f"Error finding articles by author ID: {e}")
@@ -29,7 +29,6 @@ class Article:
                 close_connection(conn)
         return articles
 
-    # FIX: AttributeError: type object 'Article' has no attribute 'find_by_title'
     @classmethod
     def find_by_title(cls, title):
         article = None
@@ -41,7 +40,7 @@ class Article:
                 row = cursor.fetchone()
                 if row:
                     article = cls(
-                        row['id'], row['title'], row['content'], row['author_id'], row['magazine_id']
+                        row['title'], row['content'], row['author_id'], row['magazine_id'], row['id'] # Pass id as the last argument
                     )
             except sqlite3.Error as e:
                 print(f"Error finding article by title: {e}")
@@ -49,7 +48,6 @@ class Article:
                 close_connection(conn)
         return article
 
-    # New method needed for Magazine.articles()
     @classmethod
     def find_by_magazine_id(cls, magazine_id):
         articles = []
@@ -61,7 +59,7 @@ class Article:
                 rows = cursor.fetchall()
                 for row in rows:
                     articles.append(cls(
-                        row['id'], row['title'], row['content'], row['author_id'], row['magazine_id']
+                        row['title'], row['content'], row['author_id'], row['magazine_id'], row['id'] # Pass id as the last argument
                     ))
             except sqlite3.Error as e:
                 print(f"Error finding articles by magazine ID: {e}")
@@ -92,9 +90,9 @@ class Article:
                 close_connection(conn)
 
     def magazine(self):
-        from .magazine import Magazine # Local import
+        from .magazine import Magazine # Local import to avoid circular dependency
         return Magazine.find_by_id(self.magazine_id)
 
     def author(self):
-        from .author import Author # Local import
+        from .author import Author # Local import to avoid circular dependency
         return Author.find_by_id(self.author_id)

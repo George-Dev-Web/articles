@@ -3,7 +3,7 @@ from lib.models.author import Author
 from lib.models.magazine import Magazine
 from lib.models.article import Article
 
-from search_db_conn import get_connection
+from lib.db.connection import get_connection, close_connection, create_tables
 import sqlite3
 import pytest
 import os

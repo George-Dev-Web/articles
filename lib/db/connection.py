@@ -41,7 +41,7 @@ def create_tables():
                 CREATE TABLE IF NOT EXISTS articles (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT NOT NULL,
-                    content TEXT NOT NULL,
+                    content TEXT NOT NULL, -- This line is vital
                     author_id INTEGER NOT NULL,
                     magazine_id INTEGER NOT NULL,
                     FOREIGN KEY (author_id) REFERENCES authors(id),

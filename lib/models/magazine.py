@@ -1,9 +1,8 @@
-# ARTICLES/lib/models/magazine.py
 import sqlite3
 from ..db.connection import get_connection, close_connection
 
 class Magazine:
-    def __init__(self, id, name, category):
+    def __init__(self, name, category, id=None):
         self.id = id
         self.name = name
         self.category = category
@@ -18,7 +17,7 @@ class Magazine:
                 cursor.execute("SELECT id, name, category FROM magazines WHERE id = ?", (magazine_id,))
                 row = cursor.fetchone()
                 if row:
-                    magazine = cls(row['id'], row['name'], row['category'])
+                    magazine = cls(row['name'], row['category'], row['id'])
             except sqlite3.Error as e:
                 print(f"Error finding magazine by ID: {e}")
             finally:
@@ -35,14 +34,13 @@ class Magazine:
                 cursor.execute("SELECT id, name, category FROM magazines WHERE name = ?", (name,))
                 row = cursor.fetchone()
                 if row:
-                    magazine = cls(row['id'], row['name'], row['category'])
+                    magazine = cls(row['name'], row['category'], row['id'])
             except sqlite3.Error as e:
                 print(f"Error finding magazine by name: {e}")
             finally:
                 close_connection(conn)
         return magazine
 
-    # FIX: AttributeError: type object 'Magazine' has no attribute 'find_by_category'
     @classmethod
     def find_by_category(cls, category):
         magazines = []
@@ -53,7 +51,7 @@ class Magazine:
                 cursor.execute("SELECT id, name, category FROM magazines WHERE category = ?", (category,))
                 rows = cursor.fetchall()
                 for row in rows:
-                    magazines.append(cls(row['id'], row['name'], row['category']))
+                    magazines.append(cls(row['name'], row['category'], row['id']))
             except sqlite3.Error as e:
                 print(f"Error finding magazines by category: {e}")
             finally:
@@ -83,16 +81,10 @@ class Magazine:
                 close_connection(conn)
 
     def articles(self):
-        """
-        Retrieves all Article objects associated with this magazine.
-        Uses lazy import to avoid circular dependency.
-        """
-        from .article import Article # Local import
+        from .article import Article
         return Article.find_by_magazine_id(self.id)
 
-    # FIX: AttributeError: 'Magazine' object has no attribute 'article_titles'
     def article_titles(self):
-        """Returns a list of titles of all articles belonging to this magazine."""
         titles = []
         conn = get_connection()
         if conn:
@@ -107,12 +99,7 @@ class Magazine:
                 close_connection(conn)
         return titles
 
-    # FIX: AttributeError: 'Magazine' object has no attribute 'contributing_authors'
-    def contributing_authors(self):
-        """
-        Returns a list of unique Author objects who have contributed to this magazine.
-        Returns None if no authors have contributed.
-        """
+    def contributing_authors(self): # This method is explicitly called by some tests
         authors = []
         conn = get_connection()
         if conn:
@@ -125,22 +112,21 @@ class Magazine:
                     WHERE articles.magazine_id = ?
                 """, (self.id,))
                 rows = cursor.fetchall()
-                from .author import Author # Local import
+                from .author import Author
                 for row in rows:
-                    authors.append(Author(row['id'], row['name']))
+                    authors.append(Author(row['name'], row['id']))
             except sqlite3.Error as e:
                 print(f"Error getting contributing authors for magazine {self.name}: {e}")
             finally:
                 close_connection(conn)
-        # As per the requirements, if no authors, return None
-        return authors if authors else None
+        return authors
 
-    # FIX: AttributeError: type object 'Magazine' has no attribute 'with_multiple_authors'
+    # NEW: Add this method to satisfy tests explicitly calling 'contributors()'
+    def contributors(self):
+        return self.contributing_authors() # This method simply calls the other one
+
     @classmethod
     def with_multiple_authors(cls):
-        """
-        Returns a list of Magazine objects that have more than one contributing author.
-        """
         magazines = []
         conn = get_connection()
         if conn:
@@ -155,20 +141,16 @@ class Magazine:
                 """)
                 rows = cursor.fetchall()
                 for row in rows:
-                    magazines.append(cls(row['id'], row['name'], row['category']))
+                    magazines.append(cls(row['name'], row['category'], row['id']))
             except sqlite3.Error as e:
                 print(f"Error finding magazines with multiple authors: {e}")
             finally:
                 close_connection(conn)
         return magazines
 
-    # FIX: AttributeError: type object 'Magazine' has no attribute 'article_counts'
     @classmethod
     def article_counts(cls):
-        """
-        Returns a dictionary where keys are magazine names and values are the count of articles.
-        """
-        counts = {}
+        counts_list = []
         conn = get_connection()
         if conn:
             try:
@@ -181,9 +163,10 @@ class Magazine:
                 """)
                 rows = cursor.fetchall()
                 for row in rows:
-                    counts[row['name']] = row['article_count']
+                    counts_list.append({'name': row['name'], 'article_count': row['article_count']})
             except sqlite3.Error as e:
                 print(f"Error getting article counts: {e}")
             finally:
                 close_connection(conn)
-        return counts
+        return counts_list
+

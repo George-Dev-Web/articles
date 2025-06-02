@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS magazines (
 CREATE TABLE IF NOT EXISTS articles (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
+    content TEXT NOT NULL, -- Add this line!
     author_id INTEGER,
     magazine_id INTEGER,
     FOREIGN KEY (author_id) REFERENCES authors(id),
