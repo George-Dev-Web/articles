@@ -1,13 +1,18 @@
-# ARTICLES/lib/models/debug.py (or ARTICLES/main.py if you move it to the root)
-import sys
-import os
+# ARTICLES/debug.py (AFTER moving it to the root)
 
-# Adjust path to import from the root of ARTICLES if debug.py is at the root
-# If debug.py is in lib/models/, these relative imports are correct.
-from .article import Article
-from .magazine import Magazine
-from .author import Author
-from ..db.connection import create_tables, get_connection, close_connection
+# No need for sys.path.append if you run from the project root
+# import sys
+# import os
+
+# Correct absolute imports from the project root
+from lib.models.article import Article
+from lib.models.magazine import Magazine
+from lib.models.author import Author
+from lib.db.connection import create_tables, get_connection, close_connection
+
+# Add import sqlite3 if you directly use sqlite3 in debug.py,
+# though the current debug.py typically doesn't directly use it
+import sqlite3 # <--- Add this if Pylance keeps complaining about it, though it might be a false positive if you don't use it directly here.
 
 def setup_initial_data():
     conn = get_connection()
@@ -89,8 +94,6 @@ if __name__ == "__main__":
         print("Article 'The Future of AI' not found.")
 
     print("\n--- Testing Author methods ---")
-    # FIX: TypeError: Author.__init__() missing 1 required positional argument: 'id' (fixed by ensuring id is passed)
-    # FIX: AttributeError: type object 'Author' has no attribute 'find_by_name'
     jane_doe = Author.find_by_name("Jane Doe")
     if jane_doe:
         print(f"Found author by name: {jane_doe.name} (ID: {jane_doe.id})")
@@ -100,7 +103,6 @@ if __name__ == "__main__":
     else:
         print("Author 'Jane Doe' not found.")
 
-    # FIX: AttributeError: type object 'Author' has no attribute 'top_author'
     top_author = Author.top_author()
     if top_author:
         print(f"\nTop Author: {top_author.name} (ID: {top_author.id})")
@@ -108,7 +110,6 @@ if __name__ == "__main__":
         print("\nNo top author found.")
 
     print("\n--- Testing Magazine methods ---")
-    # FIX: AttributeError: type object 'Magazine' has no attribute 'find_by_category'
     tech_magazines = Magazine.find_by_category("Technology")
     print("\nMagazines in 'Technology' category:")
     for mag in tech_magazines:
@@ -116,10 +117,8 @@ if __name__ == "__main__":
 
     tech_innovators = Magazine.find_by_name("Tech Innovators")
     if tech_innovators:
-        # FIX: AttributeError: 'Magazine' object has no attribute 'article_titles'
         print(f"\nArticle titles in '{tech_innovators.name}': {tech_innovators.article_titles()}")
 
-        # FIX: AttributeError: 'Magazine' object has no attribute 'contributing_authors'
         contributing_authors = tech_innovators.contributing_authors()
         if contributing_authors:
             print(f"Contributing authors for '{tech_innovators.name}': {[a.name for a in contributing_authors]}")
@@ -128,13 +127,11 @@ if __name__ == "__main__":
     else:
         print("Magazine 'Tech Innovators' not found.")
 
-    # FIX: AttributeError: type object 'Magazine' has no attribute 'with_multiple_authors'
     mags_with_multiple_authors = Magazine.with_multiple_authors()
     print("\nMagazines with multiple authors:")
     for mag in mags_with_multiple_authors:
         print(f"- {mag.name}")
 
-    # FIX: AttributeError: type object 'Magazine' has no attribute 'article_counts'
     counts = Magazine.article_counts()
     print("\nArticle counts per magazine:")
     for name, count in counts.items():
